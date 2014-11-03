@@ -3,7 +3,7 @@ require "capybara/workflows/version"
 module Capybara
   module Workflows
     # for use in capybara integration tests
-    # page : capybara page object
+    # session : the test session, where capybara and other libraries/helpers are available
     class WorkflowSet < Struct.new(:session)
       def self.workflow(name, &block)
         workflow = Proc.new do |*args| session.instance_exec(*args, &block) end
