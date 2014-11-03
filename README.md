@@ -45,7 +45,7 @@ The trick is executing that code in the context of the capybara session, not the
 
 ### Defining workflows
 
-Define workflow classes in spec/support, feature/support, or whichever directory you prefer that will be loaded before your tests run. Or require them explicitly in your tests.
+For simplicity you may want to start writing these class definitions directly into your test files, just to get started. See Loading workflows for some ideas how to reorganise later.
 
 ```ruby
 class MemberWorkflows < Capybara::Workflows::WorkflowSet
@@ -63,6 +63,34 @@ class MemberWorkflows < Capybara::Workflows::WorkflowSet
   end
 end
 ```
+
+### Loading workflows
+
+Define workflow classes in spec/support, feature/support, or whichever directory you prefer that will be loaded before your tests run. Or require them explicitly in your tests.
+
+One approach is to put the following snippet into spec/support/load_shared_test_lib.rb for RSpec, and features/support/load_shared_test_lib.rb for Cucumber
+
+```ruby
+  # -*- encoding : utf-8 -*-
+  Dir[
+    File.expand_path(
+      Rails.root.join 'test_helper_lib', '**', '*.rb'
+    )
+  ].each {|f| require f}
+```
+
+We use:
+
+```
+-|
+ |- feature
+ |- spec
+ |- test_helper_lib 
+   |- workflows
+     |- member_workflows.rb
+     |- etc
+```
+
 
 ### Cucumber
 
