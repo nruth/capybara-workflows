@@ -64,33 +64,6 @@ class MemberWorkflows < Capybara::Workflows::WorkflowSet
 end
 ```
 
-### Loading workflows
-
-Define workflow classes in spec/support, feature/support, or whichever directory you prefer that will be loaded before your tests run. Or require them explicitly in your tests.
-
-One approach is to put the following snippet into spec/support/load_shared_test_lib.rb for RSpec, and features/support/load_shared_test_lib.rb for Cucumber
-
-```ruby
-  # -*- encoding : utf-8 -*-
-  Dir[
-    File.expand_path(
-      Rails.root.join 'test_helper_lib', '**', '*.rb'
-    )
-  ].each {|f| require f}
-```
-
-We use:
-
-```
--|
- |- feature
- |- spec
- |- test_helper_lib 
-   |- workflows
-     |- member_workflows.rb
-     |- etc
-```
-
 
 ### Cucumber
 
@@ -117,6 +90,33 @@ describe "doing stuff" do
     MemberWorkflows.new(self).login_with(member.email, member.password)
   end
 end
+```
+
+### Loading workflows
+
+Define workflow classes in spec/support, feature/support, or whichever directory you prefer that will be loaded before your tests run. Or require them explicitly in your tests.
+
+One approach is to put the following snippet into spec/support/load_shared_test_lib.rb for RSpec, and features/support/load_shared_test_lib.rb for Cucumber
+
+```ruby
+  # -*- encoding : utf-8 -*-
+  Dir[
+    File.expand_path(
+      Rails.root.join 'test_helper_lib', '**', '*.rb'
+    )
+  ].each {|f| require f}
+```
+
+We use:
+
+```
+-|
+ |- feature
+ |- spec
+ |- test_helper_lib 
+   |- workflows
+     |- member_workflows.rb
+     |- etc
 ```
 
 ## Contributing
