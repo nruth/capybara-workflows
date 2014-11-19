@@ -24,13 +24,13 @@ Or install it yourself as:
 
 How you group things is up to you. This could have been called Capybara::PageObjectModel instead, but I wasn't grouping them that way at time of writing, and don't want to stand on [site_prism's](https://github.com/natritmeyer/site_prism) toes.
 
-That is to say, rather than having classes like 
+That is to say, rather than having classes like
 
 ```ruby
-MemberWorkflows.new(self).log_in(email, password)
+MemberWorkflows.new(self, email, password).log_in
 ```
 
-you could instead have 
+you could instead have
 
 ```ruby
 MemberLoginPage.new(self).log_in(email, password)
@@ -56,7 +56,7 @@ class MemberWorkflows < Capybara::Workflows::WorkflowSet
     fill_in("member_password", :with => password)
     click_button("member_submit")
   end
-  
+
   workflow :logout do
     visit '/member'
     click_on "Sign out"
@@ -64,12 +64,60 @@ class MemberWorkflows < Capybara::Workflows::WorkflowSet
 end
 ```
 
+Here's something a little more complex, which tracks previous logins (if made through the same object's interface). The optional workflow parameter gives access to instance variables and other workflow definitions. It's passed to your block as its final argument.
+
+```ruby
+class MemberWorkflows < Capybara::Workflows::WorkflowSet
+  attr_accessor :logged_in, :email, :password
+  def initialize(session, email, password)
+    self.email = email
+    self.password = password
+    self.logged_in = false
+    super(session)
+  end
+
+  # sign in
+  workflow :login do |workflow|
+    unless workflow.logged_in
+      visit '/member'
+      fill_in("member_email", with: workflow.email)
+      fill_in("member_password", with: workflow.password)
+      click_button("member_submit")
+      workflow.logged_in = true
+    end
+  end
+
+  workflow :logout do |workflow|
+    visit '/member'
+    click_on "Sign out"
+    workflow.logged_in = false
+  end
+
+  workflow :post_article do |title, body, workflow|
+    workflow.login unless workflow.logged_in
+    visit new_article_path
+    fill_in "Title", with: title
+    fill_in "Body", with: body
+    click_on "Post article"
+  end
+end
+```
+
+
 
 ### Cucumber
 
+Below demonstrates using workflows to help manage state between steps.
+
 ```ruby
+Given(/^I am in a group$/) do
+  @group = member.groups.make
+  gm = @group.group_managers.make
+  @group_manager = GroupManagerWorkflows.new(self, gm.email, gm.password)
+end
+
 Then(/^my teacher can't monitor my progress$/) do
-  GroupManagerWorkflows.new(self).view_student_progress(@member.email)
+  @group_manager.view_student_progress(@member.email)
   expect(page).to have_content("has not given you permission to monitor their progress. Please ask them to add you to their supervisor list in their account settings page.")
 end
 
@@ -87,7 +135,7 @@ end
 describe "doing stuff" do
   let(:member) {Member.make}
   before(:each) do
-    MemberWorkflows.new(self).login_with(member.email, member.password)
+    MemberWorkflows.new(self).login_with(@member.email, @member.password)
   end
 end
 ```
@@ -113,11 +161,17 @@ We use:
 -|
  |- feature
  |- spec
- |- test_helper_lib 
+ |- test_helper_lib
    |- workflows
      |- member_workflows.rb
      |- etc
 ```
+
+## State encapsulation
+
+Managing state, or context of execution, with shared cucumber steps is not fun. Assigning workflow objects to ivars and letting them track who is logged in, what their attributes are, what they can do, etc, may ease the pain.
+
+For RSpec state encapsulation may or may not be useful, since test statements share scope and are typically easier to manage than Cucumber. However, when sharing with Cucumber it may be simpler to reuse identical workflows.
 
 ## Contributing
 
