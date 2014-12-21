@@ -4,6 +4,23 @@ Organise your Capybara helper library into by-role workflow sets or [page object
 
 Helpers are executed by the original Capybara session, which you provide by dependency injection, as if you'd written the code where you call the method. All your usual helpers are available.
 
+Example:
+
+```ruby
+specify 'I can enter my qualifications' do
+  qualifications = QualificationWorkflows.new(self)
+  qualifications.add_course 'GCSE', 'Maths', 'A', 'Predicted'
+  qualifications.add_course 'A2', 'Other', 'A*', '2010'
+  qualifications.add_course 'AS', 'Chemistry', 'B', '2011'
+  expect(page).to have_css('tr', text: 'GCSE Maths A Predicted')
+  expect(page).to have_css('tr', text: 'A2 Other A* 2010')
+  expect(page).to have_css('tr', text: 'AS Chemistry B 2011')
+end
+```
+
+Where you have defined the QualificationWorkflows class and its #add_course method as explained below.
+
+
 ## Installation
 
 Add to your Gemfile's test group:
