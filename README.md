@@ -20,6 +20,51 @@ end
 
 Where you have defined the QualificationWorkflows class and its #add_course method as explained below.
 
+## Templates
+Workflow class copy-paste templates/skeletons to get you started
+
+```ruby
+class MemberWorkflows < Capybara::Workflows::WorkflowSet
+  # sign in
+  workflow :login_with do |email, password|
+    visit '/member'
+    fill_in("member_email", :with => email)  
+    fill_in("member_password", :with => password)
+    click_button("member_submit")
+  end
+
+  workflow :logout do
+    visit '/member'
+    click_on "Sign out"
+  end
+end
+
+# or with instance variables 
+
+class MemberWorkflows < Capybara::Workflows::WorkflowSet
+  attr_accessor :logged_in, :email, :password
+  def initialize(session, email, password)
+    self.email = email
+    self.password = password
+    self.logged_in = false
+    super(session)
+  end
+
+  # sign in
+  workflow :login do |workflow|
+    unless workflow.logged_in
+      visit '/member'
+      fill_in("member_email", with: workflow.email)
+      fill_in("member_password", with: workflow.password)
+      click_button("member_submit")
+      workflow.logged_in = true
+    end
+  end
+end
+```
+
+
+
 
 ## Installation
 
